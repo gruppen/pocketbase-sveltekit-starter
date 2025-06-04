@@ -1,0 +1,39 @@
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      # Enable Docker provider
+      - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
+      - --providers.docker.network=traefik_default
+      
+      # Configure entrypoints
+      - --entrypoints.web.address=:80
+      
+      # Enable API and dashboard
+      - --api.dashboard=true
+      - --api.insecure=true  # Remove in production
+      
+      # Logging
+      - --log.level=INFO
+      - --accesslog=true
+    ports:
+      - "80:80"
+      - "8080:8080"  # Traefik dashboard
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - traefik_default
+    labels:
+      # Dashboard configuration
+      - traefik.enable=true
+      - traefik.http.routers.traefik.rule=Host(`traefik.localhost`)
+      - traefik.http.routers.traefik.service=api@internal
+      - traefik.http.routers.traefik.middlewares=auth
+      - traefik.http.middlewares.auth.basicauth.users=admin:$$2y$$05$$j6h899/Es7Agqk/Dl5mjQuNtPkL6K/r0FEpG5U1hdTrq77t2KXt1a  # admin:admin
+
+networks:
+  traefik_default:
+    external: true

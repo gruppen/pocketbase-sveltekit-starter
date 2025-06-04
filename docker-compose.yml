@@ -3,28 +3,45 @@ services:
     image: alpine:latest
     entrypoint: /app/pb/entrypoint.sh
     command: "/app/pb/pocketbase serve --dev --http 0.0.0.0:8090 --publicDir ../sk/build"
-    user: ${UID}:${GID}
+    # user: ${UID}:${GID} # Removed to run as root in container, simplifying permissions
     expose:
       - 8090
+    ports: # This maps the container port to the host port
+      - "8090:8090"
     working_dir: /app/pb
     environment:
       - RELEASE=${RELEASE:-standard} # use "custom" for main.go build, "standard" for downloaded binary
       - PB_VERSION=0.27.2
       - PB_ARCH=linux_amd64
-      - HOME=/app/pb
+      # HOME: /app/pb # HOME is usually set by the image; /root for Alpine if running as root
       - AUDITLOG=${AUDITLOG}
+      - GOPATH=/go # Explicitly set GOPATH
+      - PATH=/go/bin:/usr/local/go/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin # Add /go/bin to PATH
     volumes:
-      - ${PWD}/pb:/app/pb
-      - ${PWD}/sk:/app/sk
-      - ${HOME}/go/pkg:/go/pkg
+      - ./pb:/app/pb
+      - ./sk:/app/sk
+      # - ${HOME}/go/pkg:/go/pkg # Replaced with named volume
+      - go_pkg_cache:/go/pkg
+      - go_bin_cache:/go/bin # For binaries installed via go install
   sk:
     image: node:22-alpine
-    user: ${UID}:${GID}
-    # sveltekit build
-    command: sh -c "npx pnpm install && npm run build"
+    # user: ${UID}:${GID} # Removed to run as root in container, simplifying npm permissions
+    # sveltekit dev server
+    command: sh -c "npx pnpm install && npx pnpm run dev -- --host 0.0.0.0" # Use npx for both pnpm commands
+    expose:
+      - 5173
+    ports: # This maps the container port to the host port
+      - "5173:5173"
     volumes:
-      - ${PWD}/sk:/app/sk
-      - ${PWD}/pb:/app/pb
+      - ./sk:/app/sk
+      - /app/sk/node_modules # Add this line to make node_modules container-specific
+      - ./pb:/app/pb
     environment:
-      - HOME=/app/sk
+      # HOME: /app/sk # HOME is usually set by the image
+      NPM_CONFIG_CACHE: /app/sk/.npm # Explicitly set npm cache dir
+      PNPM_HOME: /app/sk/.pnpm-home # Explicitly set pnpm home directory
     working_dir: /app/sk
+
+volumes:
+  go_pkg_cache:
+  go_bin_cache:

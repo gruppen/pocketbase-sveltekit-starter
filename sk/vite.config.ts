@@ -11,6 +11,7 @@ const config: UserConfig = {
   plugins: [sveltekit()],
   server: {
     allowedHosts: true,
+    host: '0.0.0.0', 
     proxy: {
       // proxy "/api" and "/_" to pocketbase_url
       "/api": pocketbase_url,

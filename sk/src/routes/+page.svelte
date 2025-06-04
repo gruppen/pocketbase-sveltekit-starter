@@ -6,7 +6,7 @@
   $effect(() => {
     // you could set the metadata either here or in +page.ts
     $metadata.title = "Home";
-    $metadata.headline = `Welcome to ${data.config.site?.name}`;
+    $metadata.headline = `Welkom to ${data.config.site?.name}`;
   });
 </script>
 
@@ -22,7 +22,7 @@
   on <i class="bx bxl-github bx-sm"></i>GitHub to read the documentation.
 </p>
 
-<h2>Features</h2>
+<h2>Features:</h2>
 <ul>
   <li>Svelte 5: runes, $props, snippets, etc.</li>
   <li>

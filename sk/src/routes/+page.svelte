@@ -6,7 +6,7 @@
   $effect(() => {
     // you could set the metadata either here or in +page.ts
     $metadata.title = "Home";
-    $metadata.headline = `Welkom to ${data.config.site?.name}`;
+    $metadata.headline = `Welkom! to ${data.config.site?.name}`;
   });
 </script>
 
